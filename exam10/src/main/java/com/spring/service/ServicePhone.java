@@ -30,6 +30,6 @@ public class ServicePhone implements IServicePhone {
         } catch (Exception e) {
             logger.error("getPhoneList" + e.getMessage() );
         }        
-        return null;
+        return result;
     }
 }
