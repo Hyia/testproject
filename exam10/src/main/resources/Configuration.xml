@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+        
+<!-- http://mybatis.github.io/mybatis-3/ko/configuration.html#settings  -->        
+<configuration> 
+
+    <settings>
+        <setting name="jdbcTypeForNull" value="NULL" />
+    </settings>
+    
+
+    <!-- Model 클래스를 등록한다. --> 
+    <typeAliases>
+        <package name="com.spring.model" />
+    </typeAliases>
+
+    
+    <mappers>
+             <mapper resource="mapper/mapperPhone.xml" />
+    </mappers>
+    
+</configuration>

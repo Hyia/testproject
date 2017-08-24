@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:beans="http://www.springframework.org/schema/beans"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    
+    xsi:schemaLocation="http://www.springframework.org/schema/mvc 
+    http://www.springframework.org/schema/mvc/spring-mvc.xsd    
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans.xsd        
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context.xsd
+        
+        http://www.springframework.org/schema/aop 
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx 
+        http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!-- DispatcherServlet Context: defines this servlet's request-processing infrastructure -->
+    
+
+    <!-- Handles HTTP GET requests for /resources/** by efficiently serving up static resources in the ${webappRoot}/resources directory -->
+    <resources mapping="/resources/**" location="/resources/" />
+
+    <!-- Resolves views selected for rendering by @Controllers to .jsp resources in the /WEB-INF/views directory -->
+    <beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <beans:property name="prefix" value="/WEB-INF/views/" />
+        <beans:property name="suffix" value=".jsp" />
+    </beans:bean>
+    
+    <!-- step1. annotation 설정 -->
+    <!-- Enables the Spring MVC @Controller programming model -->
+    <annotation-driven />
+    
+    <!-- step2. component scan 설정 -->
+    <context:component-scan base-package="com.sping" /> 
+
+    
+    <!-- step3. 데이터베이스 설정 -->
+    <beans:bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource">
+        <beans:property name="driverClassName"         value="com.mysql.jdbc.Driver" />
+        <beans:property name="url"                     value="jdbc:mysql://192.168.0.239:3306/examdb?useUnicode=true&amp;characterEncoding=utf8" />
+        <beans:property name="username"                value="exam1" />
+        <beans:property name="password"                value="1234" />
+             
+        <beans:property name="defaultAutoCommit"       value="true"/> 
+        <beans:property name="poolPreparedStatements"  value="true"/>
+        <beans:property name="cacheState"              value="true"/>
+    </beans:bean>
+    
+    <!-- SessionFactory 설정 :: MyBatis가 사용할 Database에 연결하도록 설정 -->
+    <beans:bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <beans:property name="dataSource"         ref="dataSource" />
+        <beans:property name="configLocation"     value="classpath:Configuration.xml" /> 
+        
+        <!-- mybatis 디렉토리에 xml 파일만 추가해주면 알아서 xml내의 쿼리 자동 인식 -->
+<!--         <beans:property name="mapperLocations"    value="classpath*:mybatis/**/mapper*.xml" />  -->
+    </beans:bean>
+ 
+    <!-- MyBatis의 CRUD 템플릿을 사용할 수 있도록 설정 -->
+    <beans:bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate" scope="singleton">
+        <beans:constructor-arg index="0" ref="sqlSessionFactory" />
+    </beans:bean>   
+    
+    
+    <!-- step4. 트랜잭션 설정 :  commit, rollback -->
+    <beans:bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <beans:property name="dataSource" ref="dataSource" />
+    </beans:bean>
+
+    <!-- 실질적으로 트랜잭션 advice가 어디서 필요한지 알려줌 -->
+    <aop:config>
+        <!-- 패키지 mybatis. 이하의 모든 메서드에 pointcut을 걸음. -->
+        <aop:pointcut id="controllerTx"  expression="execution(public * mybatis..service.Service*.*(..))" />
+        
+        <!-- ~Service2라는 bean 이름을 가진 클래스에 pointcut을 걸음. 
+        <aop:pointcut id="txAdvisePointcut" expression="bean(*Service2)" />  
+        -->
+        
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="controllerTx" />
+    </aop:config>
+    
+
+    <!-- Transaction 대상 설정 -->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="insert*"       rollback-for="RuntimeException" />
+            <tx:method name="write*"        rollback-for="RuntimeException" />
+            <tx:method name="add*"          rollback-for="RuntimeException" />
+            <tx:method name="create*"       rollback-for="RuntimeException" />
+            <tx:method name="regist*"       rollback-for="RuntimeException" />
+            <tx:method name="set*"          rollback-for="RuntimeException" />
+
+            <tx:method name="update*"       rollback-for="RuntimeException" />
+            <tx:method name="modify*"       rollback-for="RuntimeException" />
+            <tx:method name="edit*"         rollback-for="RuntimeException" />
+            <tx:method name="change*"       rollback-for="RuntimeException" />
+
+            <tx:method name="delete*"       rollback-for="RuntimeException" />
+            <tx:method name="remove"        rollback-for="RuntimeException" />
+            <tx:method name="terminate*"    rollback-for="RuntimeException" />
+
+            <tx:method name="read*"         read-only="true" />
+            <tx:method name="select*"       read-only="true" />
+            <tx:method name="get*"          read-only="true" />
+        </tx:attributes>
+    </tx:advice>
+
+    <!-- step5. 파일 업로드를 위한 MultipartResolver 설정 -->
+    <!-- 단위는 byte로 100,000,000byte이기 때문에 100MB로 설정 -->
+    <beans:bean id="multipartResolver"
+        class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <beans:property name="maxUploadSize" value="100000000" />
+        <beans:property name="maxInMemorySize" value="100000000" />
+    </beans:bean>
+  
+</beans:beans>

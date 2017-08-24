@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.mapperPhone"> 
+    
+    <select id="getPhoneList" resultType="ModelPhone">
+        SELECT * 
+          FROM TBL_PHONE 
+    </select>     
+    
+    <insert id="insertPhone" parameterType="ModelPhone">
+        INSERT INTO 
+        TBL_PHONE ( phname   , phfactory   , phprice    )
+        VALUES       ( #{phname}, #{phfactory}, #{phprice} )
+    </insert>
+    
+ </mapper>
